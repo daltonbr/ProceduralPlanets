@@ -7,12 +7,14 @@ public class TerrainFace
     private Vector3 _localUp;
     private Vector3 _axisA;
     private Vector3 _axisB;
+    private ShapeGenerator _shapeGenerator;
 
-    public TerrainFace(Mesh mesh, int resolution, Vector3 localUp)
+    public TerrainFace(ShapeGenerator shapeGenerator, Mesh mesh, int resolution, Vector3 localUp)
     {
         _mesh = mesh;
         _resolution = resolution;
         _localUp = localUp;
+        _shapeGenerator = shapeGenerator;
 
         // _axisA is perpendicular to _localUp, and _axisB is perpendicular to both.
         _axisA = new Vector3(localUp.y, localUp.z, localUp.x);
@@ -34,7 +36,7 @@ public class TerrainFace
                 Vector3 pointOnUnitCube = _localUp + (percent.x - 0.5f) * 2 * _axisA
                                                    + (percent.y - 0.5f) * 2 * _axisB;
                 Vector3 pointsOnUnitSphere = pointOnUnitCube.normalized;
-                vertices[iterations] = pointsOnUnitSphere;
+                vertices[iterations] = _shapeGenerator.CalculatePointOnPlanet(pointsOnUnitSphere);
 
                 // Another approach from catlikecoding  - https://catlikecoding.com/unity/tutorials/cube-sphere/
 //                float x2 = pointOnUnitCube.x * pointOnUnitCube.x;
@@ -44,18 +46,17 @@ public class TerrainFace
 //                vertices[iterations] = pointsOnUnitSphere;
 
                 // avoiding the edges
-                if (x != _resolution - 1 && y != _resolution - 1)
-                {
-                    // two triangles, clockwise order
-                    triangles[triIndex    ] = iterations;
-                    triangles[triIndex + 1] = iterations + _resolution + 1;
-                    triangles[triIndex + 2] = iterations + 1;
+                if (x == _resolution - 1 || y == _resolution - 1) continue;
 
-                    triangles[triIndex + 3] = iterations;
-                    triangles[triIndex + 4] = iterations + _resolution;
-                    triangles[triIndex + 5] = iterations + _resolution + 1;
-                    triIndex += 6;
-                }
+                // two triangles, clockwise order
+                triangles[triIndex    ] = iterations;
+                triangles[triIndex + 1] = iterations + _resolution + 1;
+                triangles[triIndex + 2] = iterations + 1;
+
+                triangles[triIndex + 3] = iterations;
+                triangles[triIndex + 4] = iterations + _resolution;
+                triangles[triIndex + 5] = iterations + _resolution + 1;
+                triIndex += 6;
             }
         }
 
