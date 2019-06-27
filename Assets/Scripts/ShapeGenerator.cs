@@ -3,16 +3,16 @@ using UnityEngine;
 public class ShapeGenerator
 {
     private ShapeSettings _settings;
-    private NoiseFilter[] _noiseFilters;
+    private INoiseFilter[] _noiseFilters;
 
     public ShapeGenerator(ShapeSettings shapeSettings)
     {
         _settings = shapeSettings;
-        _noiseFilters = new NoiseFilter[_settings.noiseLayers.Length];
+        _noiseFilters = new INoiseFilter[_settings.noiseLayers.Length];
 
         for (int i = 0; i < _noiseFilters.Length; i++)
         {
-            _noiseFilters[i] = new NoiseFilter(_settings.noiseLayers[i].noiseSettings);
+            _noiseFilters[i] = NoiseFilterFactory.CreateNoiseFilter(_settings.noiseLayers[i].noiseSettings);
         }
     }
 
@@ -24,7 +24,7 @@ public class ShapeGenerator
         if (_noiseFilters.Length > 0)
         {
             firstLayerValue = _noiseFilters[0].Evaluate(pointOnUnitSphere);
-        
+
             if (_settings.noiseLayers[0].enabled)
             {
                 elevation = firstLayerValue;
@@ -34,11 +34,11 @@ public class ShapeGenerator
         for (int i = 1; i < _noiseFilters.Length; i++)
         {
             if (_settings.noiseLayers[i].enabled == false) break;
-            
+
             float mask = _settings.noiseLayers[i].useFirstLayerAsMask ? firstLayerValue : 1;
             elevation += _noiseFilters[i].Evaluate(pointOnUnitSphere) * mask;
         }
-        
+
         return pointOnUnitSphere * _settings.planetRadius * (1 + elevation);
     }
-} 
+}
